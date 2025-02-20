@@ -46,6 +46,9 @@ func main() {
 	// Print workflow runs information
 	fmt.Printf("Found %d workflow runs:\n\n", runs.GetTotalCount())
 	for _, run := range runs.WorkflowRuns {
+		if run.GetStatus() != "in_progress" {
+			continue
+		}
 		fmt.Printf("Status: %s\n", run.GetStatus())
 		fmt.Printf("Created At: %s\n", run.GetCreatedAt().Format("2006-01-02 15:04:05"))
 		sha := run.GetHeadSHA()
