@@ -61,6 +61,7 @@ func main() {
 		}
 
 		ref := run.GetHeadBranch()
+		fmt.Println("ref", ref)
 		if isTag(ref) {
 			fmt.Printf("Tag: %s\n", ref)
 		} else {
