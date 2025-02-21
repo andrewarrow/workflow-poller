@@ -60,7 +60,27 @@ func main() {
 			fmt.Printf("Commit Message: %s\n", message)
 		}
 
+		ref := run.GetHeadBranch()
+		if isTag(ref) {
+			fmt.Printf("Tag: %s\n", ref)
+		} else {
+			// Try to get associated tags for this commit
+			tags, _, err := client.Repositories.ListTags(ctx, owner, repo, &github.ListOptions{})
+			if err == nil {
+				for _, tag := range tags {
+					if tag.GetCommit().GetSHA() == sha {
+						fmt.Printf("Tag: %s\n", tag.GetName())
+						break
+					}
+				}
+			}
+		}
+
 		fmt.Printf("------------------\n")
 	}
 
+}
+
+func isTag(ref string) bool {
+	return len(ref) > 0 && (ref[0] == 'v' || ref[0] == 'r' || ref[0] == 't')
 }
