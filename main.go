@@ -46,7 +46,7 @@ func main() {
 	// Print workflow runs information
 	fmt.Printf("Found %d workflow runs:\n\n", runs.GetTotalCount())
 	for _, run := range runs.WorkflowRuns {
-		if run.GetStatus() != "in_progress" {
+		if run.GetStatus() == "completed" {
 			continue
 		}
 		fmt.Printf("Status: %s\n", run.GetStatus())
