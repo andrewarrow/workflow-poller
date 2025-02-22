@@ -26,8 +26,8 @@ func ListShaActions(sha string) map[string]bool {
 	client := github.NewClient(tc)
 
 	// Repository details
-	owner := "puradev" // Replace with repository owner
-	repo := "aroma"    // Replace with repository name
+	owner := os.Getenv("WORKFLOW_POLLER_OWNER")
+	repo := os.Getenv("WORKFLOW_POLLER_REPO")
 
 	// List workflow runs
 	opts := &github.ListWorkflowRunsOptions{
@@ -60,8 +60,4 @@ func ListShaActions(sha string) map[string]bool {
 	}
 
 	return refs
-}
-
-func isTag(ref string) bool {
-	return len(ref) > 0 && (ref[0] == 'v' || ref[0] == 'r' || ref[0] == 't')
 }
