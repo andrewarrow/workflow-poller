@@ -99,7 +99,11 @@ func main() {
 	sha := GetGitCommitHash()
 	fmt.Println(sha)
 	m := ListShaActions(sha)
-	fmt.Println(m)
+	if m["containerize"] && m["promote"] == false {
+		GitTag("promote", "dev")
+	} else if m["containerize"] && m["promote"] {
+		GitTag("dev", "")
+	}
 
 	/*p := tea.NewProgram(initialModel(sha))
 	if _, err := p.Run(); err != nil {

@@ -49,6 +49,9 @@ func ListShaActions(sha string) map[string]bool {
 		if sha != localSHA {
 			continue
 		}
+		if run.GetStatus() != "completed" {
+			continue
+		}
 
 		ref := run.GetHeadBranch()
 		tokens := strings.Split(ref, "-")
