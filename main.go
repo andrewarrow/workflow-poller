@@ -32,15 +32,12 @@ type model struct {
 	selected string
 }
 
-func initialModel() model {
+func initialModel(sha string) model {
 	return model{
 		options: []string{
-			"dev",
-			"stg",
-			"prd",
-			"dev-packer",
-			"stg-packer",
-			"prd-packer",
+			"dev " + sha,
+			"stg " + sha,
+			"prd " + sha,
 		},
 	}
 }
@@ -100,7 +97,9 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
+	sha := GetGitCommitHash()
+
+	p := tea.NewProgram(initialModel(sha))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
