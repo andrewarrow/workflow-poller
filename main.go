@@ -1,87 +1,108 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/google/go-github/v55/github"
-	"golang.org/x/oauth2"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-func main() {
-	// Get GitHub token from environment variable
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		fmt.Println("Please set GITHUB_TOKEN environment variable")
-		os.Exit(1)
-	}
+var (
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Background(lipgloss.Color("#0000AA")).
+			Padding(0, 1).
+			Width(30).
+			Align(lipgloss.Center)
 
-	// Create an authenticated GitHub client
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+	itemStyle = lipgloss.NewStyle().
+			Padding(0, 2)
 
-	// Repository details
-	owner := "puradev" // Replace with repository owner
-	repo := "aroma"    // Replace with repository name
+	selectedItemStyle = lipgloss.NewStyle().
+				Padding(0, 2).
+				Foreground(lipgloss.Color("#FFFFFF")).
+				Background(lipgloss.Color("#0000FF"))
+)
 
-	// List workflow runs
-	opts := &github.ListWorkflowRunsOptions{
-		ListOptions: github.ListOptions{
-			PerPage: 30,
-		},
-	}
-
-	runs, _, err := client.Actions.ListRepositoryWorkflowRuns(ctx, owner, repo, opts)
-	if err != nil {
-		fmt.Printf("Error fetching workflow runs: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Print workflow runs information
-	fmt.Printf("Found %d workflow runs:\n\n", runs.GetTotalCount())
-	for _, run := range runs.WorkflowRuns {
-		if run.GetStatus() == "completed" {
-			continue
-		}
-		fmt.Printf("Status: %s\n", run.GetStatus())
-		fmt.Printf("Created At: %s\n", run.GetCreatedAt().Format("2006-01-02 15:04:05"))
-		sha := run.GetHeadSHA()
-		fmt.Printf("SHA: %s\n", sha)
-
-		commit, _, err := client.Repositories.GetCommit(ctx, owner, repo, sha, &github.ListOptions{})
-		if err == nil {
-			message := strings.Split(commit.GetCommit().GetMessage(), "\n")[0] // Get first line of commit message
-			fmt.Printf("Commit Message: %s\n", message)
-		}
-
-		ref := run.GetHeadBranch()
-		fmt.Println("ref", ref)
-		if isTag(ref) {
-			fmt.Printf("Tag: %s\n", ref)
-		} else {
-			// Try to get associated tags for this commit
-			tags, _, err := client.Repositories.ListTags(ctx, owner, repo, &github.ListOptions{})
-			if err == nil {
-				for _, tag := range tags {
-					if tag.GetCommit().GetSHA() == sha {
-						fmt.Printf("Tag: %s\n", tag.GetName())
-						break
-					}
-				}
-			}
-		}
-
-		fmt.Printf("------------------\n")
-	}
-
+type model struct {
+	options  []string
+	cursor   int
+	selected string
 }
 
-func isTag(ref string) bool {
-	return len(ref) > 0 && (ref[0] == 'v' || ref[0] == 'r' || ref[0] == 't')
+func initialModel() model {
+	return model{
+		options: []string{
+			"dev",
+			"stg",
+			"prd",
+			"dev-packer",
+			"stg-packer",
+			"prd-packer",
+		},
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			} else {
+				m.cursor = len(m.options) - 1
+			}
+
+		case "down", "j":
+			if m.cursor < len(m.options)-1 {
+				m.cursor++
+			} else {
+				m.cursor = 0
+			}
+
+		case "enter", " ":
+			m.selected = m.options[m.cursor]
+			return m, tea.Quit
+		}
+	}
+
+	return m, nil
+}
+
+func (m model) View() string {
+	s := titleStyle.Render("Select an option") + "\n\n"
+
+	for i, option := range m.options {
+		if m.cursor == i {
+			s += selectedItemStyle.Render(option) + "\n"
+		} else {
+			s += itemStyle.Render(option) + "\n"
+		}
+	}
+
+	s += "\n" + itemStyle.Render("Press q to quit, up/down to navigate, enter to select")
+
+	if m.selected != "" {
+		s = fmt.Sprintf("You selected: %s\n", m.selected)
+	}
+
+	return s
+}
+
+func main() {
+	p := tea.NewProgram(initialModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error running program: %v\n", err)
+		os.Exit(1)
+	}
 }
