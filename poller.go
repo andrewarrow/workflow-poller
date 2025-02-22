@@ -81,7 +81,3 @@ func main2() {
 	}
 
 }
-
-func isTag(ref string) bool {
-	return len(ref) > 0 && (ref[0] == 'v' || ref[0] == 'r' || ref[0] == 't')
-}

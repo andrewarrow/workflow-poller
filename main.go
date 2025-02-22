@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -98,10 +97,13 @@ func (m model) View() string {
 
 func main() {
 	sha := GetGitCommitHash()
+	fmt.Println(sha)
+	m := ListShaActions(sha)
+	fmt.Println(m)
 
-	p := tea.NewProgram(initialModel(sha))
+	/*p := tea.NewProgram(initialModel(sha))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)
 		os.Exit(1)
-	}
+	}*/
 }
