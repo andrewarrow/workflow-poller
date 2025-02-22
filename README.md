@@ -35,4 +35,10 @@ PROMPT='%F{blue}%~%f ${vcs_info_msg_0_}%F{yellow}${GITHEAD:+[${GITHEAD}]}%f $ '
 In `main.go` you'll find sample logic to look for completed tags, and then add
 the next needed tag.
 
+You need three env vars:
 
+```
+ os.Getenv("GITHUB_TOKEN")
+ os.Getenv("WORKFLOW_POLLER_OWNER")
+ os.Getenv("WORKFLOW_POLLER_REPO")
+```
