@@ -8,14 +8,18 @@ import (
 func main() {
 	sha := GetGitCommitHash()
 	env := "dev"
+	readyToDeploy := false
+	alreadyDeployed := false
 	for {
 		m := ListShaActions(sha)
-		if m["containerize"] && m["promote"] == false {
+		if m["containerize"] && readyToDeploy == false {
 			fmt.Println("promoting")
 			GitTag("promote", env)
-		} else if m["containerize"] && m["promote"] {
+			readyToDeploy = true
+		} else if m["promote"] && readyToDeploy == true && alreadyDeployed == false {
 			fmt.Println("deploying")
 			GitTag(env, "")
+			alreadyDeployed = true
 		} else if m[env] {
 			fmt.Println("done")
 			break
